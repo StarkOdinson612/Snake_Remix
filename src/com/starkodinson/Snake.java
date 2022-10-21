@@ -24,17 +24,19 @@ public class Snake {
         frame.setAlwaysOnTop(false);
     }
     // PANEL: RUNS THE GAME IN THE FRAME
-    public class MyPanel extends JPanel implements ActionListener {
+    public static class MyPanel extends JPanel implements ActionListener {
         // CLASS VARIABLES
-        private Random rand;
-        private int width, height, scale;
+        private final Random rand;
+        private final int width;
+        private final int height;
+        private final int scale;
         private String direction;
-        private Deque<Cell> snake;
+        private final Deque<Cell> snake;
         private Cell apple;
         private Cell gold;
-        private BlackHoleCell blackHole;
-        private KeyHandler keyhandler;
-        private Timer timer;
+        private final BlackHoleCell blackHole;
+        private final KeyHandler keyhandler;
+        private final Timer timer;
         
         // CONSTRUCTOR: SETUP PANEL COLOR, SIZE, TIMER
         public MyPanel() {
@@ -71,34 +73,27 @@ public class Snake {
             int headRow = head.getRow();
             int headCol = head.getCol();
 
-            /**
-             * STEP 1: MAKE THE SNAKE MOVE BASED ON direction (Up/Down/Left/Right)
-             * USE METHODS LIKE addFirst, addLast, removeFirst, removeLast, etc.
-             */
-
-            if (direction.equals("up"))
-            {
-                if (!direction.equals("down")) {
+            switch (direction) {
+                case "up": {
                     Cell newHead = new Cell(headRow - scale, headCol);
                     snake.addFirst(newHead);
+                    break;
                 }
-            }
-            else if (direction.equals("down"))
-            {
-                if (!direction.equals("up")) {
+                case "down": {
                     Cell newHead = new Cell(headRow + scale, headCol);
                     snake.addFirst(newHead);
+                    break;
                 }
-            }
-            else if (direction.equals("left"))
-            {
-                Cell newHead = new Cell(headRow, headCol - scale);
-                snake.addFirst(newHead);
-            }
-            else if (direction.equals("right"))
-            {
-                Cell newHead = new Cell(headRow, headCol + scale);
-                snake.addFirst(newHead);
+                case "left": {
+                    Cell newHead = new Cell(headRow, headCol - scale);
+                    snake.addFirst(newHead);
+                    break;
+                }
+                case "right": {
+                    Cell newHead = new Cell(headRow, headCol + scale);
+                    snake.addFirst(newHead);
+                    break;
+                }
             }
 
 
@@ -134,25 +129,27 @@ public class Snake {
             }
             else if (gold != null && (snake.getFirst().getCol() == gold.getCol() && snake.getFirst().getRow() == gold.getRow()))
             {
-                if (direction.equals("up"))
-                {
-                    Cell newHead = new Cell(headRow - scale * 2, headCol);
-                    snake.addFirst(newHead);
-                }
-                else if (direction.equals("down"))
-                {
-                    Cell newHead = new Cell(headRow + scale * 2, headCol);
-                    snake.addFirst(newHead);
-                }
-                else if (direction.equals("left"))
-                {
-                    Cell newHead = new Cell(headRow, headCol - scale * 2);
-                    snake.addFirst(newHead);
-                }
-                else if (direction.equals("right"))
-                {
-                    Cell newHead = new Cell(headRow, headCol + scale * 2);
-                    snake.addFirst(newHead);
+                switch (direction) {
+                    case "up": {
+                        Cell newHead = new Cell(headRow - scale * 2, headCol);
+                        snake.addFirst(newHead);
+                        break;
+                    }
+                    case "down": {
+                        Cell newHead = new Cell(headRow + scale * 2, headCol);
+                        snake.addFirst(newHead);
+                        break;
+                    }
+                    case "left": {
+                        Cell newHead = new Cell(headRow, headCol - scale * 2);
+                        snake.addFirst(newHead);
+                        break;
+                    }
+                    case "right": {
+                        Cell newHead = new Cell(headRow, headCol + scale * 2);
+                        snake.addFirst(newHead);
+                        break;
+                    }
                 }
 
                 System.out.println(snake);
@@ -186,17 +183,6 @@ public class Snake {
                     snake.removeLast();
                 }
             }
-            
-            /**
-             * STEP 2: IF THE SNAKE TOUCHES APPLE, TELEPORT IT TO EMPTY LOCATION,
-             * AND ON THE FRAME THAT THE SNAKE EATS AN APPLE, DON'T removeLast
-             */
-            
-            /**
-             * STEP 3: IF THE SNAKE GOES OFF THE SCREEN
-             * CALL
-             * timer.stop(); and return; to END THE PROGRAM
-             */
 
             if (snake.getFirst().getCol() > 1000 || snake.getFirst().getRow() > 800 || snake.getFirst().getRow() < 0 || snake.getFirst().getCol() < 0)
             {
@@ -204,8 +190,7 @@ public class Snake {
                 return;
             }
             else {
-                Deque<Cell> dupeSnake = new LinkedList<Cell>();
-                dupeSnake.addAll(snake);
+                Deque<Cell> dupeSnake = new LinkedList<>(snake);
                 dupeSnake.removeFirst();
 
                 if (dupeSnake.contains(snake.getFirst())) {
@@ -213,11 +198,6 @@ public class Snake {
                     return;
                 }
             }
-            
-            /**
-             * STEP 4: IF THE SNAKE COLLIDES WITH ITSELF
-             * CALL timer.stop(); and return; to END THE PROGRAM
-             */
 
             // REPAINT THE SCREEN
             repaint();
@@ -241,10 +221,8 @@ public class Snake {
             
             // DRAW SNAKE
             g.setColor(new Color(255,255,255));
-            Iterator<Cell> iterator = snake.iterator();
-            while(iterator.hasNext()) {
-                Cell cell = iterator.next();
-                g.fill3DRect(cell.getCol(), cell.getRow(), scale-1, scale-1, true);
+            for (Cell cell : snake) {
+                g.fill3DRect(cell.getCol(), cell.getRow(), scale - 1, scale - 1, true);
             }
             
             // DRAW APPLE
