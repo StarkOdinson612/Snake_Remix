@@ -32,6 +32,7 @@ public class Snake {
         private Deque<Cell> snake;
         private Cell apple;
         private Cell gold;
+        private BlackHoleCell blackHole;
         private KeyHandler keyhandler;
         private Timer timer;
         
@@ -42,12 +43,17 @@ public class Snake {
             height = 800;
             scale = 20;
             direction = "Up";
-            snake = new LinkedList<Cell>();
+            snake = new LinkedList<>();
             snake.add(new Cell(height/2,width/2));
             int appleRow = rand.nextInt(height/scale)*scale;
             int appleCol = rand.nextInt(width/scale)*scale;
             apple = new Cell(appleRow, appleCol);
             gold = null;
+            int holeRow = rand.nextInt(height/scale)*scale;
+            int holeCol = rand.nextInt(width/scale)*scale;
+            int tpRow = rand.nextInt(height/scale)*scale;
+            int tpCol = rand.nextInt(width/scale)*scale;
+            blackHole = new BlackHoleCell(holeRow, holeCol, tpRow, tpCol);
             keyhandler = new KeyHandler();
             addKeyListener(keyhandler);
             setFocusable(true);
@@ -86,17 +92,13 @@ public class Snake {
             }
             else if (direction.equals("left"))
             {
-                if (!direction.equals("right")) {
-                    Cell newHead = new Cell(headRow, headCol - scale);
-                    snake.addFirst(newHead);
-                }
+                Cell newHead = new Cell(headRow, headCol - scale);
+                snake.addFirst(newHead);
             }
             else if (direction.equals("right"))
             {
-                if (!direction.equals("left")) {
-                    Cell newHead = new Cell(headRow, headCol + scale);
-                    snake.addFirst(newHead);
-                }
+                Cell newHead = new Cell(headRow, headCol + scale);
+                snake.addFirst(newHead);
             }
 
 
@@ -263,6 +265,17 @@ public class Snake {
                 g.setColor(new Color(255, 255, 255, 109));
                 g.fillRect(gold.getCol() + (scale - 2)/6 - 2, gold.getRow() + (scale - 1)/6 - 2, 7, 2);
                 g.fillRect(gold.getCol() + (scale - 2)/6 - 2, gold.getRow() + (scale - 1)/6, 2, 4);
+            }
+            
+            if (blackHole != null)
+            {
+                g.setColor(new Color(14, 0, 45));
+                g.fill3DRect(blackHole.getCol(), blackHole.getRow(), scale-1, scale-1, true);
+                g.setColor(new Color(0, 21, 93, 153));
+                g.fill3DRect(blackHole.getCol() + (scale - 2)/4 + 2, blackHole.getRow() + (scale - 2)/4 + 2, (scale-1)/3, (scale-1)/3, true);
+                g.setColor(new Color(44, 0, 70, 109));
+                g.fillRect(blackHole.getCol() + (scale - 2)/6 - 2, blackHole.getRow() + (scale - 1)/6 - 2, 7, 2);
+                g.fillRect(blackHole.getCol() + (scale - 2)/6 - 2, blackHole.getRow() + (scale - 1)/6, 2, 4);
             }
         }
     }
