@@ -1,5 +1,7 @@
 package com.starkodinson;
 
+import java.util.Objects;
+
 public class BlackHoleCell extends Cell {
     private int tpr;
     private int tpc;

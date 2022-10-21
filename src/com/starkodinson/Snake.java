@@ -162,13 +162,49 @@ public class Snake {
                 int goldRow = rand.nextInt(height/scale)*scale;
                 int goldCol = rand.nextInt(width/scale)*scale;
 
-                while ((goldRow == gold.getRow() && goldCol == gold.getCol()) || snake.contains(new Cell(goldRow, goldCol)))
+                while ((goldRow == gold.getRow() && goldCol == gold.getCol()) || snake.contains(new Cell(goldRow, goldCol)) || apple.equals(gold))
                 {
                     goldRow = rand.nextInt(height/scale)*scale;
                     goldCol = rand.nextInt(width/scale)*scale;
                 }
 
                 gold = addGold ? new Cell(goldRow, goldCol) : null;
+            }
+            else if (snake.getFirst().getCol() == blackHole.getCol() && snake.getFirst().getRow() == blackHole.getRow())
+            {
+                int tpr = rand.nextInt(height/scale)*scale;
+                int tpc = rand.nextInt(width/scale)*scale;
+
+                while ((blackHole.getRow() == tpr && blackHole.getCol() == tpc) || snake.contains(new Cell(tpr, tpc)) || apple.equals(new Cell(tpr, tpc)) || (gold != null && gold.equals(new Cell(tpr, tpc))))
+                {
+                    tpr = rand.nextInt(height/scale)*scale;
+                    tpc = rand.nextInt(width/scale)*scale;
+                }
+
+                switch (direction) {
+                    case "up": {
+                        Cell newHead = new Cell(tpr - scale * 2, tpc);
+                        snake.addFirst(newHead);
+                        break;
+                    }
+                    case "down": {
+                        Cell newHead = new Cell(tpr + scale * 2, tpc);
+                        snake.addFirst(newHead);
+                        break;
+                    }
+                    case "left": {
+                        Cell newHead = new Cell(tpr, tpc - scale * 2);
+                        snake.addFirst(newHead);
+                        break;
+                    }
+                    case "right": {
+                        Cell newHead = new Cell(tpr, tpc + scale * 2);
+                        snake.addFirst(newHead);
+                        break;
+                    }
+                }
+
+                snake.removeLast();
             }
             else if (!(snake.getFirst().getCol() == apple.getCol() && snake.getFirst().getRow() == apple.getRow()))
             {
@@ -249,9 +285,9 @@ public class Snake {
             {
                 g.setColor(new Color(14, 0, 45));
                 g.fill3DRect(blackHole.getCol(), blackHole.getRow(), scale-1, scale-1, true);
-                g.setColor(new Color(0, 21, 93, 153));
-                g.fill3DRect(blackHole.getCol() + (scale - 2)/4 + 2, blackHole.getRow() + (scale - 2)/4 + 2, (scale-1)/3, (scale-1)/3, true);
-                g.setColor(new Color(44, 0, 70, 109));
+                g.setColor(new Color(0, 29, 130, 82));
+                g.fill3DRect(blackHole.getCol() + (scale - 2)/4 + 2, blackHole.getRow() + (scale - 2)/4 + 2, (scale-1)/3, (scale-1)/3, false);
+                g.setColor(new Color(97, 0, 151, 82));
                 g.fillRect(blackHole.getCol() + (scale - 2)/6 - 2, blackHole.getRow() + (scale - 1)/6 - 2, 7, 2);
                 g.fillRect(blackHole.getCol() + (scale - 2)/6 - 2, blackHole.getRow() + (scale - 1)/6, 2, 4);
             }
