@@ -7,10 +7,6 @@ import javax.swing.Timer;
 import java.util.*;
 
 public class Snake {
-    // MAIN METHOD: CALLS CONSTRUCTOR
-    public static void main(String[] args) {
-        new Snake();
-    }
     // CONSTRUCTOR: CREATES SNAKE GAME FRAME
     public Snake() {
         JFrame frame = new JFrame("Snake Game");
