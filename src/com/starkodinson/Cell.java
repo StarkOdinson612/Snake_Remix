@@ -3,7 +3,7 @@ package com.starkodinson;
 import java.util.Objects;
 
 public class Cell {
-    private int row, col;
+    protected int row, col;
     public Cell(int row, int col) {
         this.row = row;
         this.col = col;

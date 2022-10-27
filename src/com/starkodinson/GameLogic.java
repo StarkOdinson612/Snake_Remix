@@ -6,9 +6,9 @@ import javax.swing.*;
 import javax.swing.Timer;
 import java.util.*;
 
-public class Snake {
+public class GameLogic {
     // CONSTRUCTOR: CREATES SNAKE GAME FRAME
-    public Snake() {
+    public GameLogic() {
         JFrame frame = new JFrame("Snake Game");
         JPanel panel = new MyPanel();
         frame.add(panel);
@@ -30,7 +30,7 @@ public class Snake {
         private final Deque<Cell> snake;
         private Cell apple;
         private Cell gold;
-        private final BlackHoleCell blackHole;
+        private final BlackHoleCell blackHole1, blackHole2;
         private final KeyHandler keyhandler;
         private final Timer timer;
         
@@ -41,17 +41,26 @@ public class Snake {
             height = 800;
             scale = 20;
             direction = "Up";
+            
             snake = new LinkedList<>();
             snake.add(new Cell(height/2,width/2));
+            
             int appleRow = rand.nextInt(height/scale)*scale;
             int appleCol = rand.nextInt(width/scale)*scale;
             apple = new Cell(appleRow, appleCol);
+            
             gold = null;
+            
             int holeRow = rand.nextInt(height/scale)*scale;
             int holeCol = rand.nextInt(width/scale)*scale;
+            blackHole1 = new BlackHoleCell(holeRow, holeCol);
+
             int tpRow = rand.nextInt(height/scale)*scale;
             int tpCol = rand.nextInt(width/scale)*scale;
-            blackHole = new BlackHoleCell(holeRow, holeCol, tpRow, tpCol);
+            blackHole2 = new BlackHoleCell(tpRow, tpCol);
+            
+            BlackHoleCell.initializePair(blackHole1, blackHole2);
+            
             keyhandler = new KeyHandler();
             addKeyListener(keyhandler);
             setFocusable(true);
@@ -166,10 +175,12 @@ public class Snake {
 
                 gold = addGold ? new Cell(goldRow, goldCol) : null;
             }
-            else if (snake.getFirst().getCol() == blackHole.getCol() && snake.getFirst().getRow() == blackHole.getRow())
+            else if (snake.getFirst().getCol() == blackHole1.getCol() && snake.getFirst().getRow() == blackHole1.getRow())
             {
-                int tpr = blackHole.getTPCoords()[0];
-                int tpc = blackHole.getTPCoords()[1];
+                int tpr = blackHole1.getTPCoords()[1];
+                int tpc = blackHole1.getTPCoords()[0];
+
+                snake.removeFirst();
 
                 switch (direction) {
                     case "up": {
@@ -199,13 +210,13 @@ public class Snake {
                 int ntpr = rand.nextInt(height/scale)*scale;
                 int ntpc = rand.nextInt(width/scale)*scale;
 
-                while ((blackHole.getRow() == tpr && blackHole.getCol() == tpc) || snake.contains(new Cell(tpr, tpc)) || apple.equals(new Cell(tpr, tpc)) || (gold != null && gold.equals(new Cell(tpr, tpc))))
+                while ((blackHole1.getRow() == tpr && blackHole1.getCol() == tpc) || snake.contains(new Cell(tpr, tpc)) || apple.equals(new Cell(tpr, tpc)) || (gold != null && gold.equals(new Cell(tpr, tpc))))
                 {
                     ntpr = rand.nextInt(height/scale)*scale;
                     ntpc = rand.nextInt(width/scale)*scale;
                 }
 
-                blackHole.updateTPCoords(ntpr, ntpc);
+                blackHole2.setCoords(ntpr, ntpc);
             }
             else if (!(snake.getFirst().getCol() == apple.getCol() && snake.getFirst().getRow() == apple.getRow()))
             {
@@ -224,6 +235,7 @@ public class Snake {
             if (snake.getFirst().getCol() > 1000 || snake.getFirst().getRow() > 800 || snake.getFirst().getRow() < 0 || snake.getFirst().getCol() < 0)
             {
                 timer.stop();
+                System.out.println("Game Over!");
                 return;
             }
             else {
@@ -232,6 +244,7 @@ public class Snake {
 
                 if (dupeSnake.contains(snake.getFirst())) {
                     timer.stop();
+                    System.out.println("Game Over!");
                     return;
                 }
             }
@@ -282,23 +295,23 @@ public class Snake {
                 g.fillRect(gold.getCol() + (scale - 2)/6 - 2, gold.getRow() + (scale - 1)/6, 2, 4);
             }
             
-            if (blackHole != null)
+            if (blackHole1 != null)
             {
                 g.setColor(new Color(14, 0, 45));
-                g.fill3DRect(blackHole.getCol(), blackHole.getRow(), scale-1, scale-1, true);
+                g.fill3DRect(blackHole1.getCol(), blackHole1.getRow(), scale-1, scale-1, true);
                 g.setColor(new Color(0, 29, 130, 82));
-                g.fill3DRect(blackHole.getCol() + (scale - 2)/4 + 2, blackHole.getRow() + (scale - 2)/4 + 2, (scale-1)/3, (scale-1)/3, false);
+                g.fill3DRect(blackHole1.getCol() + (scale - 2)/4 + 2, blackHole1.getRow() + (scale - 2)/4 + 2, (scale-1)/3, (scale-1)/3, false);
                 g.setColor(new Color(97, 0, 151, 82));
-                g.fillRect(blackHole.getCol() + (scale - 2)/6 - 2, blackHole.getRow() + (scale - 1)/6 - 2, 7, 2);
-                g.fillRect(blackHole.getCol() + (scale - 2)/6 - 2, blackHole.getRow() + (scale - 1)/6, 2, 4);
+                g.fillRect(blackHole1.getCol() + (scale - 2)/6 - 2, blackHole1.getRow() + (scale - 1)/6 - 2, 7, 2);
+                g.fillRect(blackHole1.getCol() + (scale - 2)/6 - 2, blackHole1.getRow() + (scale - 1)/6, 2, 4);
 
                 g.setColor(new Color(37, 0, 101));
-                g.fill3DRect(blackHole.getTPCoords()[1], blackHole.getTPCoords()[0], scale-1, scale-1, true);
+                g.fill3DRect(blackHole2.getCol(), blackHole2.getRow(), scale-1, scale-1, true);
                 g.setColor(new Color(0, 41, 255, 159));
-                g.fill3DRect(blackHole.getTPCoords()[1] + (scale - 2)/4 + 2, blackHole.getTPCoords()[0] + (scale - 2)/4 + 2, (scale-1)/3, (scale-1)/3, false);
+                g.fill3DRect(blackHole2.getCol() + (scale - 2)/4 + 2, blackHole2.getRow() + (scale - 2)/4 + 2, (scale-1)/3, (scale-1)/3, false);
                 g.setColor(new Color(166, 0, 255, 82));
-                g.fillRect(blackHole.getTPCoords()[1] + (scale - 2)/6 - 2, blackHole.getTPCoords()[0] + (scale - 1)/6 - 2, 7, 2);
-                g.fillRect(blackHole.getTPCoords()[1] + (scale - 2)/6 - 2, blackHole.getTPCoords()[0] + (scale - 1)/6, 2, 4);
+                g.fillRect(blackHole2.getCol() + (scale - 2)/6 - 2, blackHole2.getRow() + (scale - 1)/6 - 2, 7, 2);
+                g.fillRect(blackHole2.getCol() + (scale - 2)/6 - 2, blackHole2.getRow() + (scale - 1)/6, 2, 4);
             }
         }
     }
