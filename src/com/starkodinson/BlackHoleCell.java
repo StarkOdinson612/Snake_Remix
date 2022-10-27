@@ -16,4 +16,10 @@ public class BlackHoleCell extends Cell {
     {
         return new int[]{tpr, tpc};
     }
+
+    public void updateTPCoords(int ntpr, int ntpc)
+    {
+        tpr = ntpr;
+        tpc = ntpc;
+    }
 }

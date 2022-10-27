@@ -168,14 +168,8 @@ public class Snake {
             }
             else if (snake.getFirst().getCol() == blackHole.getCol() && snake.getFirst().getRow() == blackHole.getRow())
             {
-                int tpr = rand.nextInt(height/scale)*scale;
-                int tpc = rand.nextInt(width/scale)*scale;
-
-                while ((blackHole.getRow() == tpr && blackHole.getCol() == tpc) || snake.contains(new Cell(tpr, tpc)) || apple.equals(new Cell(tpr, tpc)) || (gold != null && gold.equals(new Cell(tpr, tpc))))
-                {
-                    tpr = rand.nextInt(height/scale)*scale;
-                    tpc = rand.nextInt(width/scale)*scale;
-                }
+                int tpr = blackHole.getTPCoords()[0];
+                int tpc = blackHole.getTPCoords()[1];
 
                 switch (direction) {
                     case "up": {
@@ -201,6 +195,17 @@ public class Snake {
                 }
 
                 snake.removeLast();
+
+                int ntpr = rand.nextInt(height/scale)*scale;
+                int ntpc = rand.nextInt(width/scale)*scale;
+
+                while ((blackHole.getRow() == tpr && blackHole.getCol() == tpc) || snake.contains(new Cell(tpr, tpc)) || apple.equals(new Cell(tpr, tpc)) || (gold != null && gold.equals(new Cell(tpr, tpc))))
+                {
+                    ntpr = rand.nextInt(height/scale)*scale;
+                    ntpc = rand.nextInt(width/scale)*scale;
+                }
+
+                blackHole.updateTPCoords(ntpr, ntpc);
             }
             else if (!(snake.getFirst().getCol() == apple.getCol() && snake.getFirst().getRow() == apple.getRow()))
             {
@@ -286,6 +291,14 @@ public class Snake {
                 g.setColor(new Color(97, 0, 151, 82));
                 g.fillRect(blackHole.getCol() + (scale - 2)/6 - 2, blackHole.getRow() + (scale - 1)/6 - 2, 7, 2);
                 g.fillRect(blackHole.getCol() + (scale - 2)/6 - 2, blackHole.getRow() + (scale - 1)/6, 2, 4);
+
+                g.setColor(new Color(37, 0, 101));
+                g.fill3DRect(blackHole.getTPCoords()[1], blackHole.getTPCoords()[0], scale-1, scale-1, true);
+                g.setColor(new Color(0, 41, 255, 159));
+                g.fill3DRect(blackHole.getTPCoords()[1] + (scale - 2)/4 + 2, blackHole.getTPCoords()[0] + (scale - 2)/4 + 2, (scale-1)/3, (scale-1)/3, false);
+                g.setColor(new Color(166, 0, 255, 82));
+                g.fillRect(blackHole.getTPCoords()[1] + (scale - 2)/6 - 2, blackHole.getTPCoords()[0] + (scale - 1)/6 - 2, 7, 2);
+                g.fillRect(blackHole.getTPCoords()[1] + (scale - 2)/6 - 2, blackHole.getTPCoords()[0] + (scale - 1)/6, 2, 4);
             }
         }
     }
