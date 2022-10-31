@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.Timer;
+import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
 
 public class GameLogic {
@@ -27,7 +28,7 @@ public class GameLogic {
         private final int height;
         private final int scale;
         private String direction;
-        private final Deque<Cell> snake;
+        private final Snake snake;
         private Cell apple;
         private Cell gold;
         private final BlackHoleCell blackHole1, blackHole2;
@@ -42,8 +43,7 @@ public class GameLogic {
             scale = 20;
             direction = "Up";
             
-            snake = new LinkedList<>();
-            snake.add(new Cell(height/2,width/2));
+            snake = new Snake(height/2,width/2);
             
             int appleRow = rand.nextInt(height/scale)*scale;
             int appleCol = rand.nextInt(width/scale)*scale;
@@ -74,42 +74,21 @@ public class GameLogic {
         public void actionPerformed(ActionEvent e) {
             // GET CURRENT DIRECTION FROM KEYS
             direction = keyhandler.getDirection().toLowerCase();
-            Cell head = snake.getFirst();
-            int headRow = head.getRow();
-            int headCol = head.getCol();
+            int[] head = snake.getHead();
+            int headRow = head[1];
+            int headCol = head[0];
 
-            switch (direction) {
-                case "up": {
-                    Cell newHead = new Cell(headRow - scale, headCol);
-                    snake.addFirst(newHead);
-                    break;
-                }
-                case "down": {
-                    Cell newHead = new Cell(headRow + scale, headCol);
-                    snake.addFirst(newHead);
-                    break;
-                }
-                case "left": {
-                    Cell newHead = new Cell(headRow, headCol - scale);
-                    snake.addFirst(newHead);
-                    break;
-                }
-                case "right": {
-                    Cell newHead = new Cell(headRow, headCol + scale);
-                    snake.addFirst(newHead);
-                    break;
-                }
-            }
+            snake.newHead(direction, headRow, headCol, scale);
 
 
-            if (snake.getFirst().getCol() == apple.getCol() && snake.getFirst().getRow() == apple.getRow())
+            if (snake.checkCoords(apple))
             {
                 boolean addGold = rand.nextBoolean();
 
                 int appleRow = rand.nextInt(height/scale)*scale;
                 int appleCol = rand.nextInt(width/scale)*scale;
 
-                while ((appleRow == apple.getRow() && appleCol == apple.getCol()) || snake.contains(new Cell(appleRow, appleCol)))
+                while ((appleRow == apple.getRow() && appleCol == apple.getCol()) || snake.containsCell(new Cell(appleRow, appleCol)))
                 {
                     appleRow = rand.nextInt(height/scale)*scale;
                     appleCol = rand.nextInt(width/scale)*scale;
@@ -122,7 +101,7 @@ public class GameLogic {
                     int goldRow = rand.nextInt(height/scale)*scale;
                     int goldCol = rand.nextInt(width/scale)*scale;
 
-                    while (snake.contains(new Cell(goldRow, goldCol)))
+                    while (snake.containsCell(new Cell(goldRow, goldCol)))
                     {
                         goldRow = rand.nextInt(height/scale)*scale;
                         goldCol = rand.nextInt(width/scale)*scale;
@@ -132,30 +111,9 @@ public class GameLogic {
                     gold = new Cell(goldRow, goldCol);
                 }
             }
-            else if (gold != null && (snake.getFirst().getCol() == gold.getCol() && snake.getFirst().getRow() == gold.getRow()))
+            else if (gold != null && (snake.checkCoords(gold)))
             {
-                switch (direction) {
-                    case "up": {
-                        Cell newHead = new Cell(headRow - scale * 2, headCol);
-                        snake.addFirst(newHead);
-                        break;
-                    }
-                    case "down": {
-                        Cell newHead = new Cell(headRow + scale * 2, headCol);
-                        snake.addFirst(newHead);
-                        break;
-                    }
-                    case "left": {
-                        Cell newHead = new Cell(headRow, headCol - scale * 2);
-                        snake.addFirst(newHead);
-                        break;
-                    }
-                    case "right": {
-                        Cell newHead = new Cell(headRow, headCol + scale * 2);
-                        snake.addFirst(newHead);
-                        break;
-                    }
-                }
+                snake.newHead(direction, snake.getHead()[1], snake.getHead()[0], scale);
 
                 System.out.println(snake);
 
@@ -167,7 +125,7 @@ public class GameLogic {
                 int goldRow = rand.nextInt(height/scale)*scale;
                 int goldCol = rand.nextInt(width/scale)*scale;
 
-                while ((goldRow == gold.getRow() && goldCol == gold.getCol()) || snake.contains(new Cell(goldRow, goldCol)) || apple.equals(gold))
+                while ((goldRow == gold.getRow() && goldCol == gold.getCol()) || snake.containsCell(new Cell(goldRow, goldCol)) || apple.equals(gold))
                 {
                     goldRow = rand.nextInt(height/scale)*scale;
                     goldCol = rand.nextInt(width/scale)*scale;
@@ -175,54 +133,48 @@ public class GameLogic {
 
                 gold = addGold ? new Cell(goldRow, goldCol) : null;
             }
-            else if (snake.getFirst().getCol() == blackHole1.getCol() && snake.getFirst().getRow() == blackHole1.getRow())
+            else if (snake.checkCoords(blackHole1) || snake.checkCoords(blackHole2))
             {
-                int tpr = blackHole1.getTPCoords()[1];
-                int tpc = blackHole1.getTPCoords()[0];
+                BlackHoleCell collided = snake.checkCoords(blackHole1) ? blackHole1 : blackHole2;
+                
+                int tpr = collided.getTPCoords()[1];
+                int tpc = collided.getTPCoords()[0];
 
                 snake.removeFirst();
 
-                switch (direction) {
-                    case "up": {
-                        Cell newHead = new Cell(tpr - scale * 2, tpc);
-                        snake.addFirst(newHead);
-                        break;
-                    }
-                    case "down": {
-                        Cell newHead = new Cell(tpr + scale * 2, tpc);
-                        snake.addFirst(newHead);
-                        break;
-                    }
-                    case "left": {
-                        Cell newHead = new Cell(tpr, tpc - scale * 2);
-                        snake.addFirst(newHead);
-                        break;
-                    }
-                    case "right": {
-                        Cell newHead = new Cell(tpr, tpc + scale * 2);
-                        snake.addFirst(newHead);
-                        break;
-                    }
-                }
+                snake.newHead(direction, tpr, tpc, scale);
 
                 snake.removeLast();
 
                 int ntpr = rand.nextInt(height/scale)*scale;
                 int ntpc = rand.nextInt(width/scale)*scale;
 
-                while ((blackHole1.getRow() == tpr && blackHole1.getCol() == tpc) || snake.contains(new Cell(tpr, tpc)) || apple.equals(new Cell(tpr, tpc)) || (gold != null && gold.equals(new Cell(tpr, tpc))))
+                while ((collided.getRow() == tpr && collided.getCol() == tpc) || snake.containsCell(new Cell(tpr, tpc)) || apple.equals(new Cell(tpr, tpc)) || collided.getOtherReference().equals(new Cell(tpr, tpc)))
                 {
+                    System.out.println(collided.getRow() == tpr && collided.getCol() == tpc);
+                    System.out.println(snake.containsCell(new Cell(tpr, tpc)));
+                    System.out.println(apple.equals(new Cell(tpr, tpc)));
+                    System.out.println(collided.getOtherReference().equals(new Cell(tpr, tpc)));
+
+                    if (gold != null)
+                    {
+                        if (gold.equals(new Cell(tpr, tpc)))
+                        {
+                            continue;
+                        }
+                    }
+
                     ntpr = rand.nextInt(height/scale)*scale;
                     ntpc = rand.nextInt(width/scale)*scale;
                 }
 
-                blackHole2.setCoords(ntpr, ntpc);
+                collided.getOtherReference().setCoords(ntpr, ntpc);
             }
-            else if (!(snake.getFirst().getCol() == apple.getCol() && snake.getFirst().getRow() == apple.getRow()))
+            else if (!(snake.checkCoords(apple)))
             {
                 if (gold != null)
                 {
-                    if (!(snake.getFirst().getCol() == gold.getCol() && snake.getFirst().getRow() == gold.getRow()))
+                    if (!(snake.checkCoords(gold)))
                     {
                         snake.removeLast();
                     }
@@ -232,17 +184,14 @@ public class GameLogic {
                 }
             }
 
-            if (snake.getFirst().getCol() > 1000 || snake.getFirst().getRow() > 800 || snake.getFirst().getRow() < 0 || snake.getFirst().getCol() < 0)
+            if (snake.checkBounds(new int[]{0, 1000}, new int[]{0, 800}))
             {
                 timer.stop();
                 System.out.println("Game Over!");
                 return;
             }
             else {
-                Deque<Cell> dupeSnake = new LinkedList<>(snake);
-                dupeSnake.removeFirst();
-
-                if (dupeSnake.contains(snake.getFirst())) {
+                if (snake.checkContainsSelf()) {
                     timer.stop();
                     System.out.println("Game Over!");
                     return;
@@ -271,7 +220,7 @@ public class GameLogic {
             
             // DRAW SNAKE
             g.setColor(new Color(255,255,255));
-            for (Cell cell : snake) {
+            for (Cell cell : snake.returnSnakeArray()) {
                 g.fill3DRect(cell.getCol(), cell.getRow(), scale - 1, scale - 1, true);
             }
             
@@ -294,25 +243,22 @@ public class GameLogic {
                 g.fillRect(gold.getCol() + (scale - 2)/6 - 2, gold.getRow() + (scale - 1)/6 - 2, 7, 2);
                 g.fillRect(gold.getCol() + (scale - 2)/6 - 2, gold.getRow() + (scale - 1)/6, 2, 4);
             }
-            
-            if (blackHole1 != null)
-            {
-                g.setColor(new Color(14, 0, 45));
-                g.fill3DRect(blackHole1.getCol(), blackHole1.getRow(), scale-1, scale-1, true);
-                g.setColor(new Color(0, 29, 130, 82));
-                g.fill3DRect(blackHole1.getCol() + (scale - 2)/4 + 2, blackHole1.getRow() + (scale - 2)/4 + 2, (scale-1)/3, (scale-1)/3, false);
-                g.setColor(new Color(97, 0, 151, 82));
-                g.fillRect(blackHole1.getCol() + (scale - 2)/6 - 2, blackHole1.getRow() + (scale - 1)/6 - 2, 7, 2);
-                g.fillRect(blackHole1.getCol() + (scale - 2)/6 - 2, blackHole1.getRow() + (scale - 1)/6, 2, 4);
 
-                g.setColor(new Color(37, 0, 101));
-                g.fill3DRect(blackHole2.getCol(), blackHole2.getRow(), scale-1, scale-1, true);
-                g.setColor(new Color(0, 41, 255, 159));
-                g.fill3DRect(blackHole2.getCol() + (scale - 2)/4 + 2, blackHole2.getRow() + (scale - 2)/4 + 2, (scale-1)/3, (scale-1)/3, false);
-                g.setColor(new Color(166, 0, 255, 82));
-                g.fillRect(blackHole2.getCol() + (scale - 2)/6 - 2, blackHole2.getRow() + (scale - 1)/6 - 2, 7, 2);
-                g.fillRect(blackHole2.getCol() + (scale - 2)/6 - 2, blackHole2.getRow() + (scale - 1)/6, 2, 4);
-            }
+            g.setColor(new Color(14, 0, 45));
+            g.fill3DRect(blackHole1.getCol(), blackHole1.getRow(), scale-1, scale-1, true);
+            g.setColor(new Color(0, 29, 130, 82));
+            g.fill3DRect(blackHole1.getCol() + (scale - 2)/4 + 2, blackHole1.getRow() + (scale - 2)/4 + 2, (scale-1)/3, (scale-1)/3, false);
+            g.setColor(new Color(97, 0, 151, 82));
+            g.fillRect(blackHole1.getCol() + (scale - 2)/6 - 2, blackHole1.getRow() + (scale - 1)/6 - 2, 7, 2);
+            g.fillRect(blackHole1.getCol() + (scale - 2)/6 - 2, blackHole1.getRow() + (scale - 1)/6, 2, 4);
+
+            g.setColor(new Color(14, 0, 45));
+            g.fill3DRect(blackHole2.getCol(), blackHole2.getRow(), scale-1, scale-1, true);
+            g.setColor(new Color(0, 29, 130, 82));
+            g.fill3DRect(blackHole2.getCol() + (scale - 2)/4 + 2, blackHole2.getRow() + (scale - 2)/4 + 2, (scale-1)/3, (scale-1)/3, false);
+            g.setColor(new Color(97, 0, 151, 82));
+            g.fillRect(blackHole2.getCol() + (scale - 2)/6 - 2, blackHole2.getRow() + (scale - 1)/6 - 2, 7, 2);
+            g.fillRect(blackHole2.getCol() + (scale - 2)/6 - 2, blackHole2.getRow() + (scale - 1)/6, 2, 4);
         }
     }
 }

@@ -26,4 +26,6 @@ public class BlackHoleCell extends Cell {
         super.row = row;
         super.col = col;
     }
+
+    public BlackHoleCell getOtherReference() { return other; }
 }
